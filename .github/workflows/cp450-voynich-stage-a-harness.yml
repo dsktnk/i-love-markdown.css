@@ -1,24 +1,21 @@
-name: CP450 Voynich CP441 Stage A isolated harness
+name: CP451 Voynich CP441 Stage B isolated harness
 
 on:
-  push:
-    branches:
-      - cp450-voynich-stage-a-harness
   pull_request:
     types: [opened, synchronize, reopened]
     branches:
       - master
 
 jobs:
-  cp441-stage-a:
-    if: github.event_name == 'push' || github.head_ref == 'cp450-voynich-stage-a-harness'
+  cp441-stage-b:
+    if: github.head_ref == 'cp450-voynich-stage-a-harness'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -28,14 +25,15 @@ jobs:
           set -euo pipefail
           test "$(git hash-object checkpoints/cp218/run_cp218.py)" = "21e942872ad1cdab7a955b4d16e2e72af8f18a89"
           test "$(git hash-object checkpoints/cp441/run_stage_a.py)" = "2fa2e700bb0c92b8f3ef591b3d7cfdfe8095d8a8"
+          test "$(git hash-object checkpoints/cp441/run_stage_b.py)" = "cd02bdd770cd9977cb70785acea027410576a5d5"
           python --version
-      - name: Run CP441 Stage A only
-        run: python checkpoints/cp441/run_stage_a.py
-      - name: Hash Stage A result
+      - name: Run frozen CP441 Stage B once
+        run: python checkpoints/cp441/run_stage_b.py
+      - name: Hash Stage B result
         shell: bash
-        run: sha256sum checkpoints/cp441/stage_a_counts.json
+        run: sha256sum checkpoints/cp441/stage_b_result.json
       - uses: actions/upload-artifact@v4
         with:
-          name: cp450-cp441-stage-a-result
-          path: checkpoints/cp441/stage_a_counts.json
+          name: cp451-cp441-stage-b-result
+          path: checkpoints/cp441/stage_b_result.json
           if-no-files-found: error

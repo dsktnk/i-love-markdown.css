@@ -4,14 +4,21 @@ on:
   push:
     branches:
       - cp450-voynich-stage-a-harness
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
 
 jobs:
   cp441-stage-a:
+    if: github.event_name == 'push' || github.head_ref == 'cp450-voynich-stage-a-harness'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

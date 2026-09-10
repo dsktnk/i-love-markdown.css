@@ -1,0 +1,34 @@
+name: CP450 Voynich CP441 Stage A isolated harness
+
+on:
+  push:
+    branches:
+      - cp450-voynich-stage-a-harness
+
+jobs:
+  cp441-stage-a:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify frozen scientific blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git hash-object checkpoints/cp218/run_cp218.py)" = "21e942872ad1cdab7a955b4d16e2e72af8f18a89"
+          test "$(git hash-object checkpoints/cp441/run_stage_a.py)" = "2fa2e700bb0c92b8f3ef591b3d7cfdfe8095d8a8"
+          python --version
+      - name: Run CP441 Stage A only
+        run: python checkpoints/cp441/run_stage_a.py
+      - name: Hash Stage A result
+        shell: bash
+        run: sha256sum checkpoints/cp441/stage_a_counts.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cp450-cp441-stage-a-result
+          path: checkpoints/cp441/stage_a_counts.json
+          if-no-files-found: error
